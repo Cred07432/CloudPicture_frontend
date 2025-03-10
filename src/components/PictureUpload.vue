@@ -17,36 +17,28 @@
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { PlusOutlined, LoadingOutlined } from '@ant-design/icons-vue'
+import { LoadingOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import type { UploadProps } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
-import type { UploadChangeParam, UploadProps } from 'ant-design-vue'
 import { uploadPictureUsingPost } from '@/api/pictureController.ts'
 
 interface Props {
   picture?: API.PictureVO
+  spaceId?: number
   onSuccess?: (newPicture: API.PictureVO) => void
 }
 
 const props = defineProps<Props>()
 
-function getBase64(img: Blob, callback: (base64Url: string) => void) {
-  const reader = new FileReader()
-  reader.addEventListener('load', () => callback(reader.result as string))
-  reader.readAsDataURL(img)
-}
-
-const fileList = ref([])
-const loading = ref<boolean>(false)
-const imageUrl = ref<string>('')
-
 /**
- * 上传
+ * 上传图片
  * @param file
  */
 const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {
-    const params = props.picture ? { id: props.picture.id } : {}
+    const params: API.PictureUploadRequest = props.picture ? { id: props.picture.id } : {}
+    params.spaceId = props.spaceId;
     const res = await uploadPictureUsingPost(params, {}, file)
     if (res.data.code === 0 && res.data.data) {
       message.success('图片上传成功')
@@ -56,19 +48,25 @@ const handleUpload = async ({ file }: any) => {
       message.error('图片上传失败，' + res.data.message)
     }
   } catch (error) {
-    message.error('图片上传失败')
-  } finally {
-    loading.value = false
+    console.error('图片上传失败', error)
+    message.error('图片上传失败，' + error.message)
   }
+  loading.value = false
 }
 
-const params = props.picture ? { id: props.picture.id } : {}
+const loading = ref<boolean>(false)
 
+/**
+ * 上传前的校验
+ * @param file
+ */
 const beforeUpload = (file: UploadProps['fileList'][number]) => {
+  // 校验图片格式
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
   if (!isJpgOrPng) {
     message.error('不支持上传该格式的图片，推荐 jpg 或 png')
   }
+  // 校验图片大小
   const isLt2M = file.size / 1024 / 1024 < 2
   if (!isLt2M) {
     message.error('不能上传超过 2M 的图片')
@@ -80,8 +78,8 @@ const beforeUpload = (file: UploadProps['fileList'][number]) => {
 .picture-upload :deep(.ant-upload) {
   width: 100% !important;
   height: 100% !important;
-  min-height: 152px;
   min-width: 152px;
+  min-height: 152px;
 }
 
 .picture-upload img {
@@ -98,5 +96,4 @@ const beforeUpload = (file: UploadProps['fileList'][number]) => {
   margin-top: 8px;
   color: #666;
 }
-
 </style>
