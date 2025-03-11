@@ -131,11 +131,12 @@ const onPageChange =  (page: number, pageSize: number) => {
 </template>
 
 <style scoped>
-.search-bar {
+#homePage .search-bar {
   max-width: 480px;
   margin: 0 auto 16px;
 }
-.tag-bar {
-  margin: 0 auto 16px;
+
+#homePage .tag-bar {
+  margin-bottom: 16px;
 }
 </style>
