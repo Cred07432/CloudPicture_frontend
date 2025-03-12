@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
-import { computed, onMounted, reactive, ref, watchEffect } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   editPictureUsingPost,
@@ -8,9 +8,8 @@ import {
   listPictureTagCategoryUsingGet,
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
-import { EditOutlined } from '@ant-design/icons-vue'
-import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import ImageCropper from '@/components/ImageCropper.vue'
+import ImageOutPainting from '@/components/ImageOutPainting.vue'
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditRequest>({})
 const onSuccess = (newPicture: API.PictureVO) => {
@@ -113,6 +112,21 @@ const onCropSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
 }
 
+// AI 扩图弹窗引用
+const imageOutPaintingRef = ref()
+
+// AI 扩图
+const doImagePainting = () => {
+  if (imageOutPaintingRef.value) {
+    imageOutPaintingRef.value.openModal()
+  }
+}
+
+// 编辑成功事件
+const onImageOutPaintingSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
+
 onMounted(() => {
   getOldPicture()
 })
@@ -128,17 +142,21 @@ onMounted(() => {
     </a-typography-paragraph>
 
     <PictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
-
-    <div v-if="picture" class="edit-bar">
+    <a-space size="middle">
       <a-button @click="doEditPicture">编辑图片</a-button>
-        <ImageCropper
-          ref="imageCropperRef"
-          :imageUrl="picture?.url"
-          :picture="picture"
-          :spaceId="spaceId"
-          :onSuccess="onSuccess"
-        />
-    </div>
+      <a-button type="primary" ghost @click="doImagePainting"> AI 扩图 </a-button>
+    </a-space>
+    <ImageCropper
+      ref="imageCropperRef"
+      :imageUrl="picture?.url"
+      :picture="picture"
+      :onSuccess="onCropSuccess"
+    />
+    <ImageOutPainting
+      ref="imageOutPaintingRef"
+      :picture="picture"
+      :onSuccess="onImageOutPaintingSuccess"
+    />
 
     <a-form v-if="picture" layout="vertical" :model="pictureForm" @finish="handleSubmit">
       <a-form-item label="名称" name="name">
