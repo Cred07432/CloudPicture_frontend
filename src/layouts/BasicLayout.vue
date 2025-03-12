@@ -11,7 +11,7 @@
         </a-layout-content>
       </a-layout>
 
-      <a-layout-footer class="footer"> 克雷德云图库 by cred0 </a-layout-footer>
+      <a-layout-footer class="footer"> 绘影云阁 by cred0 </a-layout-footer>
     </a-layout>
   </div>
 </template>
